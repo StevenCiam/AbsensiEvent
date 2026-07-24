@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Absensi Event</title>
     <link rel="stylesheet" href="styles.css">
+
+    <!-- 🔥 FIREBASE SDK CDN (Wajib dimasukkan) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- Layar Error jika link tidak valid -->
@@ -30,7 +34,6 @@
                 </div>
                 
                 <form id="attendanceForm" class="attendance-form">
-                    <!-- INPUT NIM BIASA (ISIAN TEKS) -->
                     <div class="form-group">
                         <label for="nim">NIM <span class="required">*</span></label>
                         <input type="text" id="nim" name="nim" placeholder="Masukkan NIM Anda (Cth: 2311001)" required autocomplete="off">

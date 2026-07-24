@@ -1,5 +1,31 @@
+// ==========================================
+// 📍 1. TEMPELKAN FIREBASE CONFIG ANDA DI SINI
+// ==========================================
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC6EvpeR8hkZ-ZNQKRbbYj1SD6lU6eib8Q",
+  authDomain: "absensi-event-2c22a.firebaseapp.com",
+  projectId: "absensi-event-2c22a",
+  storageBucket: "absensi-event-2c22a.firebasestorage.app",
+  messagingSenderId: "652495354149",
+  appId: "1:652495354149:web:abc5075b967730ec50c2cc",
+  measurementId: "G-0YTHVFHPWX"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. CEK PARAMETER URL (Membaca link spesifik event)
+    // CEK PARAMETER URL
     const urlParams = new URLSearchParams(window.location.search);
     const eventId = urlParams.get('id');
     const eventTitle = urlParams.get('title');
@@ -9,14 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorScreen = document.getElementById('errorScreen');
     const mainFormScreen = document.getElementById('mainFormScreen');
 
-    // Jika buka tanpa link spesifik event
     if (!eventId || !eventTitle) {
         if (errorScreen) errorScreen.style.display = 'flex';
         if (mainFormScreen) mainFormScreen.style.display = 'none';
         return;
     }
 
-    // Tampilkan Form
     if (errorScreen) errorScreen.style.display = 'none';
     if (mainFormScreen) mainFormScreen.style.display = 'block';
     
@@ -26,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (displayEventDate) displayEventDate.innerText = eventDate || 'Event';
     document.title = `Absensi | ${eventTitle}`;
 
-    // === BANNER ACARA ===
+    // BANNER ACARA
     const bannerWrapper = document.getElementById('bannerWrapper');
     const eventBannerImg = document.getElementById('eventBannerImg');
 
@@ -37,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         bannerWrapper.style.display = 'none';
     }
 
-    // 2. LOGIKA AUTO-FILL BERDASARKAN NIM (KHUSUS PER EVENT INI)
     const form = document.getElementById('attendanceForm');
     const submitBtn = document.getElementById('submitBtn');
     
@@ -46,53 +69,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('email');
     const kelasInput = document.getElementById('kelas');
     const telpInput = document.getElementById('telepon');
-    
-    // AMBIL DATABASE PESERTA KHUSUS EVENT INI
-    const dbPeserta = JSON.parse(localStorage.getItem(`db_peserta_${eventId}`)) || [];
 
-    // Deteksi ketikan NIM
+    // AUTO-FILL DATA PESERTA DARI FIREBASE FIRESTORE
     if (nimInput) {
-        nimInput.addEventListener('input', (e) => {
+        nimInput.addEventListener('input', async (e) => {
             const cariNim = e.target.value.trim();
-            const dataMatch = dbPeserta.find(p => p.nim.toString().trim() === cariNim);
+            if (cariNim.length < 3) return;
 
-            if (dataMatch) {
-                if (namaInput) namaInput.value = dataMatch.nama || '';
-                if (emailInput) emailInput.value = dataMatch.email || '';
-                if (kelasInput) kelasInput.value = dataMatch.kelas || '';
-                if (telpInput) telpInput.value = dataMatch.wa || dataMatch.telepon || '';
-            } else {
-                if (namaInput) namaInput.value = '';
-                if (emailInput) emailInput.value = '';
-                if (kelasInput) kelasInput.value = '';
-                if (telpInput) telpInput.value = '';
+            try {
+                const snapshot = await db.collection('peserta')
+                    .where('eventId', '==', eventId)
+                    .where('nim', '==', cariNim)
+                    .get();
+
+                if (!snapshot.empty) {
+                    const dataMatch = snapshot.docs[0].data();
+                    if (namaInput) namaInput.value = dataMatch.nama || '';
+                    if (emailInput) emailInput.value = dataMatch.email || '';
+                    if (kelasInput) kelasInput.value = dataMatch.kelas || '';
+                    if (telpInput) telpInput.value = dataMatch.wa || dataMatch.telepon || '';
+                } else {
+                    if (namaInput) namaInput.value = '';
+                    if (emailInput) emailInput.value = '';
+                    if (kelasInput) kelasInput.value = '';
+                    if (telpInput) telpInput.value = '';
+                }
+            } catch (err) {
+                console.error("Error fetching data:", err);
             }
         });
     }
 
-    // 3. LOGIKA SUBMIT FORM (DENGAN CEK DUPLIKASI ABSENSI)
+    // SUBMIT FORM ABSENSI KE FIREBASE (CEK ABSEN 1 KALI PER NIM)
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const nimVal = nimInput.value.trim();
 
-            // Cek 1: Validasi apakah NIM terdaftar di database event ini
             if(!namaInput || !namaInput.value) {
-                alert("NIM Anda tidak terdaftar pada event ini. Pastikan Anda sudah terdaftar di database event ini.");
+                alert("NIM Anda tidak terdaftar pada event ini. Pastikan Anda sudah terdaftar.");
                 return;
             }
 
-            // Cek 2: Validasi apakah NIM ini SUDAH PERNAH ABSEN di event ini
-            const dataKehadiran = JSON.parse(localStorage.getItem('kehadiran_event')) || [];
-            const sudahAbsen = dataKehadiran.some(k => k.eventId === eventId && k.nim.toString().trim() === nimVal);
-
-            if (sudahAbsen) {
-                alert(`⚠️ NIM ${nimVal} (${namaInput.value}) SUDAH melakukan absensi pada event ini! Anda hanya bisa melakukan absensi 1 kali.`);
-                return;
-            }
-
-            // Jalankan proses simpan absensi
             if (submitBtn) submitBtn.disabled = true;
             const btnText = document.getElementById('btnText');
             const btnLoader = document.getElementById('btnLoader');
@@ -100,32 +119,53 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnText) btnText.style.display = 'none';
             if (btnLoader) btnLoader.style.display = 'block';
 
-            const waktuSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            
-            dataKehadiran.push({
-                eventId: eventId,
-                eventTitle: eventTitle,
-                nim: nimVal,
-                nama: namaInput.value,
-                kelas: kelasInput.value,
-                waktu: waktuSekarang
-            });
-            
-            localStorage.setItem('kehadiran_event', JSON.stringify(dataKehadiran));
+            try {
+                // 🛑 CEK VALIDASI: Apakah NIM sudah pernah absen di event ini
+                const checkAbsen = await db.collection('absensi')
+                    .where('eventId', '==', eventId)
+                    .where('nim', '==', nimVal)
+                    .get();
 
-            setTimeout(() => {
+                if (!checkAbsen.empty) {
+                    alert(`⚠️ NIM ${nimVal} (${namaInput.value}) SUDAH melakukan absensi pada event ini! Setiap peserta hanya bisa absen 1 kali.`);
+                    resetButton();
+                    return;
+                }
+
+                // SIMPAN KE DATABASE ONLINE FIRESTORE
+                const waktuSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                
+                await db.collection('absensi').add({
+                    eventId: eventId,
+                    eventTitle: eventTitle,
+                    nim: nimVal,
+                    nama: namaInput.value,
+                    kelas: kelasInput.value,
+                    waktu: waktuSekarang,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
                 form.style.display = 'none';
                 const successMsg = document.getElementById('successMessage');
                 if (successMsg) successMsg.classList.remove('hidden');
-                
-                if (submitBtn) submitBtn.disabled = false;
-                if (btnText) btnText.style.display = 'block';
-                if (btnLoader) btnLoader.style.display = 'none';
-            }, 800);
+
+            } catch (err) {
+                alert("Gagal melakukan absensi: " + err.message);
+            } finally {
+                resetButton();
+            }
         });
     }
 
-    // 4. RESET FORM
+    function resetButton() {
+        if (submitBtn) submitBtn.disabled = false;
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        if (btnText) btnText.style.display = 'block';
+        if (btnLoader) btnLoader.style.display = 'none';
+    }
+
+    // RESET FORM
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
