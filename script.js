@@ -1,5 +1,5 @@
 // ==========================================
-// 📍 1. TEMPELKAN FIREBASE CONFIG ANDA DI SINI
+// 📍 TEMPELKAN FIREBASE CONFIG ANDA DI SINI
 // ==========================================
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
@@ -23,54 +23,73 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
+// Inisialisasi Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-document.addEventListener('DOMContentLoaded', () => {
-    // CEK PARAMETER URL
+document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const eventId = urlParams.get('id');
-    const eventTitle = urlParams.get('title');
-    const eventDate = urlParams.get('date');
-    const eventBanner = urlParams.get('banner');
 
     const errorScreen = document.getElementById('errorScreen');
     const mainFormScreen = document.getElementById('mainFormScreen');
-
-    if (!eventId || !eventTitle) {
-        if (errorScreen) errorScreen.style.display = 'flex';
-        if (mainFormScreen) mainFormScreen.style.display = 'none';
-        return;
-    }
-
-    if (errorScreen) errorScreen.style.display = 'none';
-    if (mainFormScreen) mainFormScreen.style.display = 'block';
-    
     const displayEventName = document.getElementById('displayEventName');
     const displayEventDate = document.getElementById('displayEventDate');
-    if (displayEventName) displayEventName.innerText = eventTitle;
-    if (displayEventDate) displayEventDate.innerText = eventDate || 'Event';
-    document.title = `Absensi | ${eventTitle}`;
-
-    // BANNER ACARA
     const bannerWrapper = document.getElementById('bannerWrapper');
     const eventBannerImg = document.getElementById('eventBannerImg');
 
-    if (eventBanner && bannerWrapper && eventBannerImg) {
-        eventBannerImg.src = eventBanner;
-        bannerWrapper.style.display = 'block';
-    } else if (bannerWrapper) {
-        bannerWrapper.style.display = 'none';
+    if (!eventId) {
+        showError();
+        return;
+    }
+
+    // AMBIL DATA EVENT BERDASARKAN ID
+    let eventTitle = '';
+    try {
+        const eventDoc = await db.collection('events').doc(eventId).get();
+        if (!eventDoc.exists) {
+            showError();
+            return;
+        }
+
+        const eventData = eventDoc.data();
+        eventTitle = eventData.title;
+
+        if (displayEventName) displayEventName.innerText = eventData.title;
+        if (displayEventDate) displayEventDate.innerText = eventData.date || 'Event';
+        document.title = `Absensi | ${eventData.title}`;
+
+        // TAMPILKAN BANNER DARI DATABASE JIKA ADA
+        if (eventData.banner && bannerWrapper && eventBannerImg) {
+            eventBannerImg.src = eventData.banner;
+            bannerWrapper.style.display = 'block';
+        } else if (bannerWrapper) {
+            bannerWrapper.style.display = 'none';
+        }
+
+        if (errorScreen) errorScreen.style.display = 'none';
+        if (mainFormScreen) mainFormScreen.style.display = 'block';
+
+    } catch (err) {
+        console.error("Gagal mengambil data event:", err);
+        showError();
+        return;
+    }
+
+    function showError() {
+        if (errorScreen) errorScreen.style.display = 'flex';
+        if (mainFormScreen) mainFormScreen.style.display = 'none';
     }
 
     const form = document.getElementById('attendanceForm');
     const submitBtn = document.getElementById('submitBtn');
-    
     const nimInput = document.getElementById('nim');
     const namaInput = document.getElementById('nama');
     const emailInput = document.getElementById('email');
     const kelasInput = document.getElementById('kelas');
     const telpInput = document.getElementById('telepon');
 
-    // AUTO-FILL DATA PESERTA DARI FIREBASE FIRESTORE
+    // AUTO-FILL DATA PESERTA BERDASARKAN NIM
     if (nimInput) {
         nimInput.addEventListener('input', async (e) => {
             const cariNim = e.target.value.trim();
@@ -95,44 +114,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (telpInput) telpInput.value = '';
                 }
             } catch (err) {
-                console.error("Error fetching data:", err);
+                console.error("Error fetching data peserta:", err);
             }
         });
     }
 
-    // SUBMIT FORM ABSENSI KE FIREBASE (CEK ABSEN 1 KALI PER NIM)
+    // SUBMIT FORM ABSENSI
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const nimVal = nimInput.value.trim();
 
-            if(!namaInput || !namaInput.value) {
-                alert("NIM Anda tidak terdaftar pada event ini. Pastikan Anda sudah terdaftar.");
+            if (!namaInput || !namaInput.value) {
+                alert("NIM Anda tidak terdaftar pada event ini!");
                 return;
             }
 
             if (submitBtn) submitBtn.disabled = true;
             const btnText = document.getElementById('btnText');
             const btnLoader = document.getElementById('btnLoader');
-            
             if (btnText) btnText.style.display = 'none';
             if (btnLoader) btnLoader.style.display = 'block';
 
             try {
-                // 🛑 CEK VALIDASI: Apakah NIM sudah pernah absen di event ini
+                // CEK VALIDASI: Cegah Absensi Ganda
                 const checkAbsen = await db.collection('absensi')
                     .where('eventId', '==', eventId)
                     .where('nim', '==', nimVal)
                     .get();
 
                 if (!checkAbsen.empty) {
-                    alert(`⚠️ NIM ${nimVal} (${namaInput.value}) SUDAH melakukan absensi pada event ini! Setiap peserta hanya bisa absen 1 kali.`);
+                    alert(`⚠️ NIM ${nimVal} (${namaInput.value}) SUDAH melakukan absensi!`);
                     resetButton();
                     return;
                 }
 
-                // SIMPAN KE DATABASE ONLINE FIRESTORE
                 const waktuSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 
                 await db.collection('absensi').add({
@@ -165,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnLoader) btnLoader.style.display = 'none';
     }
 
-    // RESET FORM
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
