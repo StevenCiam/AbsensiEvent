@@ -170,18 +170,21 @@
 
     <script>
         // ==========================================
-        // 📍 TEMPELKAN FIREBASE CONFIG ANDA DI SINI
+        // 📍 FIREBASE CONFIG RESMI
         // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSy...",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "123456789...",
-            appId: "1:123456789...:web:abcdef..."
+          apiKey: "AIzaSyC6EvpeR8hkZ-ZNQKRbbYj1SD6lU6eib8Q",
+          authDomain: "absensi-event-2c22a.firebaseapp.com",
+          projectId: "absensi-event-2c22a",
+          storageBucket: "absensi-event-2c22a.firebasestorage.app",
+          messagingSenderId: "652495354149",
+          appId: "1:652495354149:web:abc5075b967730ec50c2cc",
+          measurementId: "G-0YTHVFHPWX"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
 
         // HELPER: Convert Image File to Base64 Text

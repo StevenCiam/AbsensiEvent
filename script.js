@@ -1,14 +1,6 @@
 // ==========================================
-// 📍 TEMPELKAN FIREBASE CONFIG ANDA DI SINI
+// 📍 FIREBASE CONFIG RESMI
 // ==========================================
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyC6EvpeR8hkZ-ZNQKRbbYj1SD6lU6eib8Q",
   authDomain: "absensi-event-2c22a.firebaseapp.com",
@@ -19,12 +11,10 @@ const firebaseConfig = {
   measurementId: "G-0YTHVFHPWX"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// Inisialisasi Firebase
-firebase.initializeApp(firebaseConfig);
+// Inisialisasi Firebase Compat
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', async () => {
