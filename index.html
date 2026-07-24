@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Event</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Layar Error jika link tidak valid -->
+    <div id="errorScreen" style="display: none; height: 100vh; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;">
+        <h2 style="color: #ef4444; margin-bottom: 10px;">Akses Ditolak 🛑</h2>
+        <p style="color: #475569;">Link absensi tidak valid. Silakan gunakan link spesifik event yang diberikan oleh panitia.</p>
+    </div>
+
+    <!-- Layar Utama Form -->
+    <div id="mainFormScreen" style="display: none;">
+        <div class="page-wrapper">
+            <div class="card-container">
+                
+                <!-- BANNER ACARA DINAMIS -->
+                <div class="event-banner-container" id="bannerWrapper">
+                    <img id="eventBannerImg" src="" alt="Banner Acara">
+                </div>
+
+                <div class="card-header">
+                    <div class="event-badge" id="displayEventDate">Tanggal Event</div>
+                    <h1 id="displayEventName">Nama Event</h1>
+                    <p>Silakan masukkan NIM Anda untuk mengonfirmasi kehadiran.</p>
+                </div>
+                
+                <form id="attendanceForm" class="attendance-form">
+                    <!-- INPUT NIM BIASA (ISIAN TEKS) -->
+                    <div class="form-group">
+                        <label for="nim">NIM <span class="required">*</span></label>
+                        <input type="text" id="nim" name="nim" placeholder="Masukkan NIM Anda (Cth: 2311001)" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nama">Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" id="nama" name="nama" placeholder="Otomatis terisi..." required readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Alamat Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="Otomatis terisi..." required readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kelas">Kelas <span class="required">*</span></label>
+                        <input type="text" id="kelas" name="kelas" placeholder="Otomatis terisi..." required readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telepon">Nomor WhatsApp</label>
+                        <input type="tel" id="telepon" name="telepon" placeholder="Otomatis terisi..." readonly>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="submit-btn">
+                        <span id="btnText">Konfirmasi Kehadiran</span>
+                        <div id="btnLoader" class="loader" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <div id="successMessage" class="success-message hidden">
+                    <div class="success-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h3>Kehadiran Tercatat!</h3>
+                    <p>Terima kasih telah mengisi form absensi.</p>
+                    <button id="resetBtn" class="reset-btn">Isi Form Lagi</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Absensi Event Multi-Acara</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            display: block;
+            padding: 20px;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .admin-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+
+        /* TABS NAVIGASI */
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        .btn-success { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-success:hover { background: #059669; }
+
+        .btn-warning { background: #f59e0b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .btn-copy { background: #64748b; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+
+        .select-event {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            background-color: #fff;
+        }
+
+        /* MODAL POPUP FOR EDIT */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>⚙️ Admin Panel Absensi Event</h1>
+        </div>
+
+        <!-- TABS MENU -->
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="switchTab('tab-event')">📅 Kelola Event</button>
+            <button class="tab-btn" onclick="switchTab('tab-peserta')">👥 Database Peserta Per Event</button>
+            <button class="tab-btn" onclick="switchTab('tab-rekap')">📊 Hasil Absensi Per Event</button>
+        </div>
+
+        <!-- TAB 1: KELOLA EVENT -->
+        <div id="tab-event" class="tab-content active">
+            <div class="card">
+                <h2>Buat Link Event Baru</h2>
+                <form id="formEvent">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nama Event <span class="required">*</span></label>
+                            <input type="text" id="eventName" placeholder="Cth: Seminar AI & Tech" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Event <span class="required">*</span></label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Event (File nama):</label>
+                            <input type="file" id="eventBanner" accept="image/*">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Simpan & Buat Link Event</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Daftar Event Acara</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Event</th>
+                            <th>Tanggal</th>
+                            <th>Banner</th>
+                            <th>Aksi / Link Absensi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableEventList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: DATABASE PESERTA (KHUSUS PER EVENT) -->
+        <div id="tab-peserta" class="tab-content">
+            <div class="card" style="border: 2px solid #2563eb;">
+                <h2>Pilih Event Terlebih Dahulu</h2>
+                <select id="selectEventPeserta" class="select-event" onchange="renderPesertaTable()">
+                    <option value="">-- Pilih Event --</option>
+                </select>
+            </div>
+
+            <!-- PASTE EXCEL MASSAL -->
+            <div class="card">
+                <h2>Import Massal Peserta dari Excel</h2>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 8px;">Format 5 Kolom berurutan: <b>NIM | Nama | Email | Kelas | WhatsApp</b> (Copy langsung dari sel Excel)</p>
+                <textarea id="excelInput" style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #cbd5e1;" placeholder="Paste data Excel di sini..."></textarea>
+                <button class="btn-primary" style="margin-top: 10px;" onclick="importExcelData()">Import Data ke Event Ini</button>
+            </div>
+
+            <!-- TAMBAH MANUAL -->
+            <div class="card">
+                <h2>Tambah Peserta Manual</h2>
+                <form id="formAddSinglePeserta">
+                    <div class="form-row">
+                        <input type="text" id="addNim" placeholder="NIM *" required>
+                        <input type="text" id="addNama" placeholder="Nama Lengkap *" required>
+                        <input type="email" id="addEmail" placeholder="Email *" required>
+                        <input type="text" id="addKelas" placeholder="Kelas *" required>
+                        <input type="tel" id="addWa" placeholder="Nomor WhatsApp">
+                    </div>
+                    <button type="submit" class="btn-success">+ Tambah Peserta</button>
+                </form>
+            </div>
+
+            <!-- DAFTAR PESERTA -->
+            <div class="card">
+                <h2>Master Peserta Event Ini (<span id="totalMasterPeserta">0</span>)</h2>
+                <input type="text" id="searchPeserta" placeholder="🔍 Cari NIM / Nama Peserta..." oninput="renderPesertaTable()" style="margin-bottom: 15px;">
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>NIM</th>
+                                <th>Nama Lengkap</th>
+                                <th>Kelas</th>
+                                <th>Email</th>
+                                <th>WhatsApp</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableMasterPeserta"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: REKAP ABSENSI PER EVENT -->
+        <div id="tab-rekap" class="tab-content">
+            <div class="card">
+                <h2>Pilih Event untuk Melihat Hasil Absensi</h2>
+                <select id="filterEventSelect" class="select-event" onchange="renderHasilAbsensi()">
+                    <option value="">-- Pilih Event --</option>
+                </select>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <h3>Daftar Kehadiran (<span id="totalHadir">0</span> Mahasiswa)</h3>
+                    <div>
+                        <button class="btn-success" onclick="exportToCSV()">📥 Download CSV / Excel</button>
+                        <button class="btn-danger" onclick="clearAbsensiEvent()">🗑️ Hapus Absensi Event Ini</button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Waktu Absen</th>
+                            <th>NIM</th>
+                            <th>Nama Lengkap</th>
+                            <th>Kelas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableHasilAbsensi"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT PESERTA -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 15px;">Edit Data Peserta</h2>
+            <form id="formEditPeserta">
+                <input type="hidden" id="editOriginalNim">
+                <div class="form-group"><label>NIM:</label><input type="text" id="editNim" required></div>
+                <div class="form-group"><label>Nama Lengkap:</label><input type="text" id="editNama" required></div>
+                <div class="form-group"><label>Email:</label><input type="email" id="editEmail" required></div>
+                <div class="form-group"><label>Kelas:</label><input type="text" id="editKelas" required></div>
+                <div class="form-group"><label>WhatsApp:</label><input type="text" id="editWa"></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;">Simpan Perubahan</button>
+                    <button type="button" class="btn-danger" onclick="closeEditModal()" style="flex:1;">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // === LOGIKA TAB NAVIGASI ===
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if(tabId === 'tab-peserta') populateEventDropdown('selectEventPeserta');
+            if(tabId === 'tab-rekap') populateEventDropdown('filterEventSelect');
+        }
+
+        function populateEventDropdown(elementId) {
+            const events = JSON.parse(localStorage.getItem('db_events')) || [];
+            const select = document.getElementById(elementId);
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="">-- Pilih Event --</option>';
+
+            events.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.title} (${e.date})</option>`;
+            });
+
+            if(currentValue) select.value = currentValue;
+
+            if(elementId === 'selectEventPeserta') renderPesertaTable();
+            if(elementId === 'filterEventSelect') renderHasilAbsensi();
+        }
+
+        // ==========================================
+        // 1. LOGIKA KELOLA EVENT
+        // ==========================================
+        const formEvent = document.getElementById('formEvent');
+        
+        formEvent.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('eventName').value.trim();
+            const date = document.getElementById('eventDate').value;
+            const bannerInput = document.getElementById('eventBanner');
+            
+            const eventId = 'event-' + Date.now();
+            let bannerName = '';
+
+            if (bannerInput.files && bannerInput.files[0]) {
+                bannerName = bannerInput.files[0].name;
+            }
+
+            const events = JSON.parse(localStorage.getItem('db_events')) || [];
+            events.push({ id: eventId, title: title, date: date, banner: bannerName });
+            localStorage.setItem('db_events', JSON.stringify(events));
+
+            formEvent.reset();
+            renderEventList();
+            alert('Event Berhasil Dibuat!');
+        });
+
+        function renderEventList() {
+            const events = JSON.parse(localStorage.getItem('db_events')) || [];
+            const tbody = document.getElementById('tableEventList');
+            tbody.innerHTML = '';
+
+            const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+
+            events.forEach((item) => {
+                let bannerParam = item.banner ? `&banner=${encodeURIComponent(item.banner)}` : '';
+                let linkAbsensi = `${currentPath}index.html?id=${item.id}&title=${encodeURIComponent(item.title)}&date=${encodeURIComponent(item.date)}${bannerParam}`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${item.title}</b></td>
+                        <td>${item.date}</td>
+                        <td>${item.banner || '<i style="color:#94a3b8">Tanpa Banner</i>'}</td>
+                        <td>
+                            <button class="btn-copy" onclick="copyToClipboard('${linkAbsensi}')">📋 Copy Link Absensi</button>
+                            <button class="btn-danger" onclick="deleteEvent('${item.id}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteEvent(id) {
+            if(confirm('Hapus event ini? Database peserta dan absensi event ini juga akan terhapus.')) {
+                let events = JSON.parse(localStorage.getItem('db_events')) || [];
+                events = events.filter(e => e.id !== id);
+                localStorage.setItem('db_events', JSON.stringify(events));
+                
+                // Hapus juga master peserta khusus event ini
+                localStorage.removeItem(`db_peserta_${id}`);
+                
+                renderEventList();
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Link absensi berhasil disalin!');
+        }
+
+        // ==========================================
+        // 2. LOGIKA DATABASE PESERTA (PER EVENT)
+        // ==========================================
+        function renderPesertaTable() {
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            const tbody = document.getElementById('tableMasterPeserta');
+            const totalCount = document.getElementById('totalMasterPeserta');
+            const searchKeyword = document.getElementById('searchPeserta').value.toLowerCase();
+
+            tbody.innerHTML = '';
+
+            if(!selectedEventId) {
+                totalCount.innerText = '0';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444; font-weight:600;">⚠️ Harap pilih event pada dropdown di atas terlebih dahulu!</td></tr>';
+                return;
+            }
+
+            const peserta = JSON.parse(localStorage.getItem(`db_peserta_${selectedEventId}`)) || [];
+            
+            const filteredPeserta = peserta.filter(p => 
+                p.nim.toString().toLowerCase().includes(searchKeyword) || 
+                p.nama.toLowerCase().includes(searchKeyword)
+            );
+
+            totalCount.innerText = peserta.length;
+
+            if(filteredPeserta.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Belum ada data peserta untuk event ini.</td></tr>';
+                return;
+            }
+
+            filteredPeserta.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${p.nim}</b></td>
+                        <td>${p.nama}</td>
+                        <td>${p.kelas}</td>
+                        <td>${p.email}</td>
+                        <td>${p.wa || '-'}</td>
+                        <td>
+                            <button class="btn-warning" onclick="openEditModal('${p.nim}')">Edit</button>
+                            <button class="btn-danger" onclick="deletePeserta('${p.nim}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Import Excel Massal per Event
+        function importExcelData() {
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            if(!selectedEventId) return alert('Pilih event terlebih dahulu!');
+
+            const text = document.getElementById('excelInput').value.trim();
+            if(!text) return alert('Paste data dari Excel terlebih dahulu!');
+
+            const rows = text.split('\n');
+            const newPeserta = [];
+
+            rows.forEach(r => {
+                const cols = r.split('\t');
+                if(cols.length >= 2) {
+                    newPeserta.push({
+                        nim: cols[0] ? cols[0].trim() : '',
+                        nama: cols[1] ? cols[1].trim() : '',
+                        email: cols[2] ? cols[2].trim() : '',
+                        kelas: cols[3] ? cols[3].trim() : '',
+                        wa: cols[4] ? cols[4].trim() : ''
+                    });
+                }
+            });
+
+            localStorage.setItem(`db_peserta_${selectedEventId}`, JSON.stringify(newPeserta));
+            document.getElementById('excelInput').value = '';
+            alert('Berhasil mengimpor ' + newPeserta.length + ' peserta ke event ini!');
+            renderPesertaTable();
+        }
+
+        // Tambah Manual per Event
+        document.getElementById('formAddSinglePeserta').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            if(!selectedEventId) return alert('Pilih event terlebih dahulu!');
+
+            const nim = document.getElementById('addNim').value.trim();
+            const nama = document.getElementById('addNama').value.trim();
+            const email = document.getElementById('addEmail').value.trim();
+            const kelas = document.getElementById('addKelas').value.trim();
+            const wa = document.getElementById('addWa').value.trim();
+
+            let peserta = JSON.parse(localStorage.getItem(`db_peserta_${selectedEventId}`)) || [];
+            
+            if(peserta.some(p => p.nim === nim)) {
+                return alert('NIM ini sudah terdaftar di event ini!');
+            }
+
+            peserta.push({ nim, nama, email, kelas, wa });
+            localStorage.setItem(`db_peserta_${selectedEventId}`, JSON.stringify(peserta));
+            
+            e.target.reset();
+            renderPesertaTable();
+            alert('Peserta berhasil ditambahkan ke event ini!');
+        });
+
+        // Hapus Peserta per Event
+        function deletePeserta(nim) {
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            if(confirm(`Yakin hapus peserta NIM ${nim} dari event ini?`)) {
+                let peserta = JSON.parse(localStorage.getItem(`db_peserta_${selectedEventId}`)) || [];
+                peserta = peserta.filter(p => p.nim.toString() !== nim.toString());
+                localStorage.setItem(`db_peserta_${selectedEventId}`, JSON.stringify(peserta));
+                renderPesertaTable();
+            }
+        }
+
+        // Modal Edit Peserta
+        function openEditModal(nim) {
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            const peserta = JSON.parse(localStorage.getItem(`db_peserta_${selectedEventId}`)) || [];
+            const item = peserta.find(p => p.nim.toString() === nim.toString());
+
+            if(item) {
+                document.getElementById('editOriginalNim').value = item.nim;
+                document.getElementById('editNim').value = item.nim;
+                document.getElementById('editNama').value = item.nama;
+                document.getElementById('editEmail').value = item.email;
+                document.getElementById('editKelas').value = item.kelas;
+                document.getElementById('editWa').value = item.wa || '';
+                document.getElementById('editModal').style.display = 'flex';
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('formEditPeserta').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedEventId = document.getElementById('selectEventPeserta').value;
+            const originalNim = document.getElementById('editOriginalNim').value;
+            let peserta = JSON.parse(localStorage.getItem(`db_peserta_${selectedEventId}`)) || [];
+
+            const index = peserta.findIndex(p => p.nim.toString() === originalNim.toString());
+            if(index !== -1) {
+                peserta[index] = {
+                    nim: document.getElementById('editNim').value.trim(),
+                    nama: document.getElementById('editNama').value.trim(),
+                    email: document.getElementById('editEmail').value.trim(),
+                    kelas: document.getElementById('editKelas').value.trim(),
+                    wa: document.getElementById('editWa').value.trim()
+                };
+
+                localStorage.setItem(`db_peserta_${selectedEventId}`, JSON.stringify(peserta));
+                closeEditModal();
+                renderPesertaTable();
+                alert('Data peserta berhasil diubah!');
+            }
+        });
+
+        // ==========================================
+        // 3. LOGIKA REKAP ABSENSI PER EVENT
+        // ==========================================
+        function renderHasilAbsensi() {
+            const selectedEventId = document.getElementById('filterEventSelect').value;
+            const kehadiranAll = JSON.parse(localStorage.getItem('kehadiran_event')) || [];
+            const tbody = document.getElementById('tableHasilAbsensi');
+            const totalHadir = document.getElementById('totalHadir');
+
+            tbody.innerHTML = '';
+
+            if(!selectedEventId) {
+                totalHadir.innerText = '0';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Silakan pilih event terlebih dahulu.</td></tr>';
+                return;
+            }
+
+            const filteredData = kehadiranAll.filter(k => k.eventId === selectedEventId);
+            totalHadir.innerText = filteredData.length;
+
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Belum ada absensi tercatat untuk event ini.</td></tr>';
+                return;
+            }
+
+            filteredData.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.waktu}</td>
+                        <td>${item.nim}</td>
+                        <td><b>${item.nama}</b></td>
+                        <td>${item.kelas}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function clearAbsensiEvent() {
+            const selectedEventId = document.getElementById('filterEventSelect').value;
+            if(!selectedEventId) return alert('Pilih event terlebih dahulu!');
+
+            if(confirm('Yakin ingin menghapus SELURUH data absensi pada event ini?')) {
+                let kehadiranAll = JSON.parse(localStorage.getItem('kehadiran_event')) || [];
+                kehadiranAll = kehadiranAll.filter(k => k.eventId !== selectedEventId);
+                localStorage.setItem('kehadiran_event', JSON.stringify(kehadiranAll));
+                renderHasilAbsensi();
+            }
+        }
+
+        function exportToCSV() {
+            const selectedEventId = document.getElementById('filterEventSelect').value;
+            if(!selectedEventId) return alert('Pilih event terlebih dahulu!');
+
+            const kehadiranAll = JSON.parse(localStorage.getItem('kehadiran_event')) || [];
+            const filteredData = kehadiranAll.filter(k => k.eventId === selectedEventId);
+
+            if(filteredData.length === 0) return alert('Tidak ada data absensi untuk diexport.');
+
+            let csvContent = "data:text/csv;charset=utf-8,No,Waktu,NIM,Nama,Kelas\n";
+            filteredData.forEach((row, i) => {
+                csvContent += `${i+1},"${row.waktu}","${row.nim}","${row.nama}","${row.kelas}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Absensi_Event_${selectedEventId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Inisialisasi awal
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEventList();
+        });
+    </script>
+</body>
+</html>
